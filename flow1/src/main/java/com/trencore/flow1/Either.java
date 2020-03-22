@@ -2,7 +2,7 @@ package com.trencore.flow1;
 
 import java.util.function.Consumer;
 
-public class Either<RESULT, EXCEPTION extends Exception> {
+public class Either<RESULT, EXCEPTION extends Throwable> {
 
     private RESULT result;
     private EXCEPTION exception;
@@ -12,7 +12,7 @@ public class Either<RESULT, EXCEPTION extends Exception> {
         this.exception = right;
     }
 
-    class Failure<EXCEPTION extends Exception> {
+    class Failure<EXCEPTION extends Throwable> {
 
         EXCEPTION exception;
 
