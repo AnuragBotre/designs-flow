@@ -56,9 +56,9 @@ public class ProblemTest {
                 }
         );
 
-        result.ifSuccess(arrayList -> {
+        /*result.ifSuccess(arrayList -> {
 
-        }).orFailure(e -> e.printStackTrace());
+        }).orFailure(e -> e.printStackTrace());*/
     }
 
     private Object[] array(Object... args) {
@@ -68,30 +68,28 @@ public class ProblemTest {
 
     private <T> Either<T, Exception> fetch(String sql, Object[] args, Supplier<T> supplier, BiConsumer<T, ResultSet> biConsumer) {
         try (Connection connection = getConnection()) {
-
-            try (PreparedStatement preparedStatement = connection.prepareStatement(sql);) {
-
-
-                for (int i = 0; i < args.length; i++) {
-                    preparedStatement.setObject(i + 1, args[i]);
-                }
-
-                Either<T, Exception> resultSet = getResultSet(supplier, preparedStatement, biConsumer);
-                return resultSet;
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-
-
+            return preparedStatement(sql, args, supplier, biConsumer, connection);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            Either either = new Either<>(null,e);
+            return either;
+        }
+    }
+
+    private <T> Either<T, Exception> preparedStatement(String sql, Object[] args, Supplier<T> supplier, BiConsumer<T, ResultSet> biConsumer, Connection connection) {
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql);) {
+            for (int i = 0; i < args.length; i++) {
+                preparedStatement.setObject(i + 1, args[i]);
+            }
+            Either<T, Exception> resultSet = getResultSet(supplier, preparedStatement, biConsumer);
+            return resultSet;
+        } catch (Exception e) {
+            Either either = new Either<>(null,e);
+            return either;
         }
     }
 
     private <T> Either<T, Exception> getResultSet(Supplier<T> supplier, PreparedStatement preparedStatement, BiConsumer<T, ResultSet> biConsumer) {
-
-        Either<T,Exception> either = null;
-
         try (ResultSet resultSet = preparedStatement.executeQuery();) {
             T t = null;
 
@@ -105,13 +103,12 @@ public class ProblemTest {
                 biConsumer.accept(t, resultSet);
             }
 
-
             Optional<T> t1 = Optional.ofNullable(t);
-            either = new Either(t1,null);
+            Either either = new Either(t1,null);
             return either;
 
         } catch (Exception e) {
-            either = new Either<>(null,e);
+            Either either = new Either<>(null,e);
             return either;
         }
     }
