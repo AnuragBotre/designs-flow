@@ -12,14 +12,18 @@ public class Either<RESULT, EXCEPTION extends Throwable> {
         this.exception = right;
     }
 
-    class Failure<EXCEPTION extends Throwable> {
+    public interface Failure<EXCEPTION extends Throwable> {
+        void orFailure(Consumer<EXCEPTION> consumer);
+    }
+
+    private class FailureImpl implements Failure<EXCEPTION> {
 
         EXCEPTION exception;
 
-        public Failure() {
+        public FailureImpl() {
         }
 
-        public Failure(EXCEPTION exception) {
+        public FailureImpl(EXCEPTION exception) {
             this.exception = exception;
         }
 
@@ -33,12 +37,11 @@ public class Either<RESULT, EXCEPTION extends Throwable> {
             consumer.accept(result);
             return new NoOpFailure();
         } else {
-            return new Failure<>(exception);
+            return new FailureImpl(exception);
         }
     }
 
-    class NoOpFailure extends Failure {
-
+    class NoOpFailure extends FailureImpl {
 
 
         @Override
